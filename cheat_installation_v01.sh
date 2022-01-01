@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 #prenom: Lyronn
-#version: 0.4
+#version: 1.0
 #
 #
 
@@ -55,7 +55,7 @@ function config_cheat()
 	cheat --init > /opt/COMMUN/cheat/conf.yml
 
 	#remplacement du dossier de root par défaut vers /opt/COMMUN
-	sed -i 's;/root/.config/; opt/COMMUN/;' /opt/COMMUN/cheat/conf.yml
+	sed -i 's;/root/.config/; /opt/COMMUN/;' /opt/COMMUN/cheat/conf.yml
 
 	#téléchargement des cheatsheets de la communauté
 	git clone https://github.com/cheat/cheatsheets.git
@@ -79,6 +79,9 @@ function rights_cheat()
 
 function dir_root()
 {
+	#umask de 007 repertoires et fichiers
+	echo 'umask 007' >> /root/.bashrc
+
 	#creer le fichier de conf de root
 	mkdir /root/.config/
 
@@ -94,31 +97,44 @@ function dir_root()
 	#alias mv
 	echo 'alias mv="mv -vi"' >> /root/.bashrc
 
+	#alias rm
+	echo 'alias rm="rm -rv --preserve-root"' >> /root/.bashrc
+
+	#alias su
+	echo 'alias su="su -"' >> /root/.bashrc
+
+	#alias min5: afficher les fichiers du repertoire courant
+	#qui ont ete modifie il y a moins de 5 min et les afficher
+	echo 'alias min5="find . -type f -mmin -5 -ls"' >> /root/.bashrc
+
 	#personnaliser le PS1
-	export PS1='\n[\t] \u@\h \w\n\$ '
+	echo 'export PS1="\n[\t] \u@\h \w\n\$ "' >> /root/.bashrc
+	source /root/.bashrc
 
 	#lien symbolique qui nous mene a /opt/COMMUN/cheat 
-	ln -s /opt/COMMUM/cheat /root/.config/cheat
+	ln -s /opt/COMMUN/cheat /root/.config/cheat
 
 	#lien symbolique de /etc/skel/.config/cheat qui nous mene vers /opt/COMMUN/cheat
 	ln -s /opt/COMMUN/cheat /etc/skel/.config/cheat
+
+	#ajout du droit d'écriture pour le groupe commun
+	chmod g+sw /opt/COMMUN/cheat/cheatsheets/personal/
 
 }
 
 function user_lyronn()
 {
-	#creation du groupe commun
-	groupadd commun
-
 	#ajout au groupe sudo et commun
-	usermod -aG sudo 
-	usermod -aG commun
+	usermod -aG sudo,commun lyronn
 
 	#umask de 007 repertoires et fichiers
-	umask 007
+	echo 'umask 007' >> /home/lyronn/.bashrc
 
-	#creation du fichier de config cheat
-	mkdir /home/lyronn/.config/cheat	
+	#creation du fichier .config et de cheat
+	mkdir -v /home/lyronn/.config/
+
+	#.config appartient seulement a lyronn
+	chown -Rv lyronn /home/lyronn/.config
 
 	#lien symbolique vers opt/commun/cheat pour la gestion de cheat par l'admin
 	ln -s /opt/COMMUN/cheat/ /home/lyronn/.config/cheat
@@ -136,25 +152,33 @@ function user_lyronn()
 	#alias mv
 	echo 'alias mv="mv -vi"' >> /home/lyronn/.bashrc
 
+	#alias rm
+	echo 'alias rm="rm -rv --preserve-root"' >> /home/lyronn/.bashrc
+
+	#alias su
+	echo 'alias su="su -"' >> /home/lyronn/.bashrc
+
+	#alias min5: afficher les fichiers du repertoire courant
+	#qui ont ete modifie il y a moins de 5 min et les afficher
+	echo 'alias min5="find . -type f -mmin -5 -ls"' >> /home/lyronn/.bashrc
+
 	#personnaliser le PS1
-	export PS1='\n[\t] \u@\h \w\n\$ '
+	echo 'export PS1="\n[\t] \u@\h \w\n\$ "' >> /home/lyronn/.bashrc
+	source /home/lyronn/.bashrc
 }
 
 function user_esgi()
 {
 	#creer le user esgi 
 	#-G group -s shell -m home directory -c commentaire
-	useradd -G sudo -s /bin/bash -m -c 'Compte du prof' esgi
+	useradd -G sudo,commun -s /bin/bash -m -c 'Compte du prof' esgi
 
 	#creer le mdp
-	echo -e 'Pa55w.rd' | sudo passwd esgi
+	#echo -e 'Pa55w.rd' | sudo passwd esgi
+	echo esgi:Pa55w.rd | chpasswd
 
-	#ajouter au groupe sudo et commun
-	usermod -aG sudo 
-	usermod -aG commun
-
-	#creation du fichier de config cheat
-	mkdir /home/esgi/.config/cheat	
+	#.config appartient seulement a esgi
+	chown -Rv esgi /home/esgi/.config
 
 	#lien symbolique vers opt/commun/cheat pour la gestion de cheat par l'admin
 	ln -s /opt/COMMUN/cheat/ /home/esgi/.config/cheat
@@ -164,7 +188,7 @@ function user_esgi()
 	echo 'export EDITOR="$VISUAL"' >> /home/esgi/.bashrc
 
 	#ajouter le umask 007 pour les repertoires et fichiers
-	umask 007
+	echo 'umask 007' >> /home/esgi/.bashrc
 
 	#ajout de ll au bashrc et skel pour tous les utilisateurs
 	echo 'alias ll="ls -rtl --color"' >> /home/esgi/.bashrc	
@@ -175,6 +199,20 @@ function user_esgi()
 	#alias mv
 	echo 'alias mv="mv -vi"' >> /home/esgi/.bashrc
 
+	#alias rm
+	echo 'alias rm="rm -rv --preserve-root"' >> /home/esgi/.bashrc
+
+	#alias su
+	echo 'alias su="su -"' >> /home/esgi/.bashrc
+
+	#alias min5: afficher les fichiers du repertoire courant
+	#qui ont ete modifie il y a moins de 5 min et les afficher
+	echo 'alias min5="find . -type f -mmin -5 -ls"' >> /home/esgi/.bashrc
+
+	#personnaliser le PS1
+	echo 'export PS1="\n[\t] \u@\h \w\n\$ "' >> /home/esgi/.bashrc
+	source /home/esgi/.bashrc
+	su -
 }
 
 echo "Vérification de l'utilisateur root"
@@ -204,3 +242,21 @@ echo "Création des fichiers de conf dans /root/.config/cheat et /etc/skel/.conf
 config_cheat
 
 sleep 15
+
+echo "Droits pour cheat"
+rights_cheat
+
+sleep 15
+
+echo "Configuration de root"
+dir_root
+
+sleep 15
+
+echo "Configuration de l'utilisateur lyronn"
+user_lyronn
+
+sleep 15
+echo "Configuration de l'utilisateur esgi"
+user_esgi
+
