@@ -1,6 +1,5 @@
 #!/bin/bash
 #
-#prenom: Lyronn
 #version: 1.0
 #
 #
@@ -8,10 +7,10 @@
 clear
 
 #affiche chaque commande effectuee
-set -x
+#set -x
 
 #arrete le programme apres un retour different de 0
-set -e
+#set -e
 
 clear
 
